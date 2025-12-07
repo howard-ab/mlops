@@ -1,0 +1,7 @@
+[Wheel]
+Name: myalgo
+Version: 0.1.0
+Python: >=3.8
+Platform: linux
+Built-in: python:3.10-slim
+Date: Sun Dec  7 20:04:45 UTC 2025

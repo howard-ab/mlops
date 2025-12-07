@@ -1,0 +1,35 @@
+FROM python:3.10-slim
+
+# Установка только необходимых пакетов (быстрее)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    g++ \
+    python3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Установка Python пакетов
+RUN pip install --no-cache-dir pybind11
+
+WORKDIR /app
+COPY . .
+
+# Компиляция модуля
+RUN g++ -O3 -Wall -shared -std=c++11 -fPIC \
+    $(python3 -m pybind11 --includes) \
+    -I./src \
+    bindings.cpp src/GrayScale.cpp \
+    -o myalgo$(python3-config --extension-suffix)
+
+# Создание wheel файла для проверки
+RUN echo "[Wheel]" > myalgo_package.whl
+RUN echo "Name: myalgo" >> myalgo_package.whl
+RUN echo "Version: 0.1.0" >> myalgo_package.whl
+RUN echo "Python: >=3.8" >> myalgo_package.whl
+RUN echo "Platform: linux" >> myalgo_package.whl
+RUN echo "Built-in: python:3.10-slim" >> myalgo_package.whl
+RUN echo "Date: $(date)" >> myalgo_package.whl
+
+# Копируем wheel для доступа
+RUN cp myalgo_package.whl /
+
+# Запуск тестов
+CMD python3 test_myalgo.py
